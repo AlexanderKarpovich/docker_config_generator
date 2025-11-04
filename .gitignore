@@ -1,3 +1,23 @@
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# PyCharm
+/.idea/
+/.idea/workspace.xml
+/.idea/tasks.xml
+/.idea/dictionaries
+/.idea/vcs.xml
+/.idea/jsLibraryMappings.xml
+/.idea/dataSources.ids
+/.idea/dataSources.xml
+/.idea/sqlDataSources.xml
+/.idea/dynamic.xml
+/.idea/uiDesigner.xml
+/.idea/aws.xml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
