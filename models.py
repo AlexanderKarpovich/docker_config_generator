@@ -36,7 +36,7 @@ class DockerConfig(BaseModel):
         if self.framework == Framework.DJANGO:
             requirements.extend(["Django>=4.2", "gunicorn"])
         elif self.framework == Framework.FASTAPI:
-            requirements.extend(["fastapi", "uvicorn[standard]"])
+            requirements.extend(["fastapi", "gunicorn", "uvicorn[standard]"])
         elif self.framework == Framework.FLASK:
             requirements.extend(["Flask", "gunicorn"])
 

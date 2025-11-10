@@ -1,4 +1,5 @@
 FROM python:{{config.python_version.value}}-slim
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 WORKDIR /app/{{config.app_name}}
 COPY ./requirements.txt /app/requirements.txt
@@ -6,3 +7,20 @@ RUN apt-get update -y
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/{{config.app_name}}
+{% if config.framework == 'flask' %}
+EXPOSE 5000
+{% else %}
+EXPOSE 8000
+{% endif %}
+
+{% if config.framework == 'django' %}
+CMD ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]
+{% endif %}
+
+{% if config.framework == 'fastapi' %}
+CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:8000", "--worker-class", "uvicorn.workers.UvicornWorker", "--workers", "4"]
+{% endif %}
+
+{% if config.framework == 'flask' %}
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "wsgi:app"]
+{% endif %}
