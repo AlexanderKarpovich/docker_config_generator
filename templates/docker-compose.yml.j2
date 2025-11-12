@@ -83,3 +83,92 @@ services:
 {% endif %}
 {% endif %}
   app:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: {{config.app_name}}_app
+    env_file:
+      -./.env
+{% if config.framework == 'django' %}
+      command:sh - c "
+      {% if config.collect_static %}
+        python manage.py collectstatic --noinput&&
+      {% endif }
+        python manage.py migrate --noinput
+      "
+{% endif %}
+    volumes:
+      .:/app/{{app_name}}
+      ./logs:/app/logs
+    ports:
+{% if config.framework == 'flask' %}
+      - "5000:5000"
+{% else %}
+      - "8000:8000"
+{% endif %}
+    depends_on:
+{% if config.database %}
+      - db
+{% endif %}
+{% if config.use_redis %}
+      - redis
+  redis:
+    image: redis:7-alpine
+    container_name: {{config.app_name}}_redis
+    ports:
+      - 6380:6380
+{% endif %}
+{% if config.use_celery %}
+  celery_worker:
+    build: .
+    container_name: {{config.app_name}}_celery
+    command: bash -c "cd src && celery -A {{config.app_name}} worker --loglevel=info"
+    volumes:
+      - .:/app/{{config.app_name}}
+      - ./logs:/app/logs
+    env_file:
+      - ./.env
+    depends_on:
+      - app
+      - redis
+  celery-beat:
+    build: .
+    container_name: {{config.app_name}}celery-beat
+    command: bash -c "cd src && celery -A {{config.app_name}} beat"
+    volumes:
+      - .:/app/{{config.app_name}}
+      - ./logs:/app/logs
+    env_file:
+      - ./.env
+    depends_on:
+      - app
+      - redis
+{% endif %}
+  nginx:
+    restart: always
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: {{config.app_name}}nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d/:ro
+{% if config.use_certbot %}
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+      - ./certbot/www/:/var/www/certbot:rw
+{% endif %}
+    depends_on:
+      - app
+{% if config.use_certbot %}
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/www/:/var/www/certbot:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+    command: certonly --webroot --webroot-path=/var/www/certbot --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive -d domain_name
+    depends_on:
+      - nginx
+{% endif %}

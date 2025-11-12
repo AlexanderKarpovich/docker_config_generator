@@ -26,6 +26,7 @@ class DockerConfig(BaseModel):
     database: Database = Database.NONE
     use_redis: bool = False
     use_celery: bool = False
+    use_certbot: bool = False
     collect_static: bool = False
     app_name: str = "app"
 
