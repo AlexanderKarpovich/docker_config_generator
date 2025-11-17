@@ -15,3 +15,13 @@ class DockerfileGenerator:
         return template.render(
             config=config
         )
+
+    def generate_docker_compose(self, config: DockerConfig) -> str:
+        template = self.env.get_template("docker-compose.yml.j2")
+        return template.render(
+            config=config
+        )
+
+    def generate_nginx_dockerfile(self):
+        template = self.env.get_template("NginxDockerfile.j2")
+        return template.render()
